@@ -800,6 +800,30 @@ body {
     background-color: var(--input-bg) !important;
 }
 
+/* App Footer */
+.app-footer {
+    margin-top: auto;
+    padding: 24px 20px 16px;
+    text-align: center;
+    border-top: 1px solid var(--border-color);
+    color: var(--text-muted);
+    font-size: 0.85rem;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    background-color: transparent;
+}
+
+.app-footer strong {
+    color: var(--primary);
+    font-weight: 700;
+}
+
+.app-footer .footer-links {
+    font-size: 0.75rem;
+    opacity: 0.7;
+}
+
 /* Section Visibility Classes */
 .section-hidden {
     display: none !important;

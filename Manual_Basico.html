@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Manual de Usuario - HCD Las Heras</title>
+    <style>
+        body { font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; color: #333; line-height: 1.6; padding: 40px; margin: 0; }
+        h1 { color: #047857; border-bottom: 2px solid #047857; padding-bottom: 10px; }
+        h2 { color: #0f172a; margin-top: 30px; }
+        h3 { color: #334155; }
+        .box { background-color: #f8fafc; border-left: 4px solid #047857; padding: 15px; margin: 20px 0; border-radius: 4px; }
+        .box.warning { border-left-color: #f59e0b; background-color: #fffbeb; }
+        .screenshot { border: 1px solid #ccc; border-radius: 8px; padding: 10px; background: #fff; margin: 10px 0; }
+        ul, ol { margin-bottom: 20px; }
+        li { margin-bottom: 8px; }
+        .badge { background: #0f172a; color: white; padding: 2px 8px; border-radius: 12px; font-size: 0.8em; }
+    </style>
+</head>
+<body>
+    <h1>Manual de Usuario: Sistema de Ordenanzas HCD</h1>
+    <p>Bienvenido al nuevo sistema de Gestión y Monitoreo de Proyectos del Honorable Concejo Deliberante de Las Heras. Este sistema permite tener un control total, organizado y en tiempo real de todos los expedientes.</p>
+    
+    <div class="box">
+        <strong>🌐 Acceso al sistema:</strong> Para ingresar, simplemente abre el navegador web desde cualquier computadora o celular y entra a: <br>
+        <a href="https://22aimar.github.io/ordenanzas-app/">https://22aimar.github.io/ordenanzas-app/</a>
+    </div>
+
+    <h2>1. Iniciar Sesión</h2>
+    <p>El sistema es privado. Para ingresar, debes utilizar el correo y contraseña que te proporcionó el Administrador del sistema. Una vez que ingreses tus datos, presiona el botón "Ingresar".</p>
+
+    <h2>2. Navegación del Sistema</h2>
+    <p>A la izquierda de la pantalla verás un menú que te permite cambiar de vistas rápidamente:</p>
+    <ul>
+        <li><span class="badge">Panel de Control</span> Vista general que muestra estadísticas, gráficos y la tabla completa.</li>
+        <li><span class="badge">Proyectos</span> Vista enfocada únicamente en la tabla para buscar y leer expedientes sin distracciones.</li>
+        <li><span class="badge">Comisiones</span> Filtra automáticamente la tabla para mostrar SOLO los proyectos que se encuentran en estado "En Comisión".</li>
+        <li><span class="badge">Reportes</span> Muestra los gráficos y el ranking de concejales en pantalla completa, ideal para armar informes.</li>
+    </ul>
+
+    <h2>3. ¿Cómo cargar un Nuevo Proyecto?</h2>
+    <p>Existen dos formas de cargar información:</p>
+    
+    <h3>A. Carga Manual (Uno por uno)</h3>
+    <ol>
+        <li>Haz clic en el botón verde <strong>"Nuevo Proyecto"</strong> arriba a la derecha.</li>
+        <li>Completa el formulario (Expediente, Título, Autor, Área, etc.).</li>
+        <li>En la caja de texto grande, puedes pegar o redactar el cuerpo del proyecto. Puedes usar negritas, listas o subrayados.</li>
+        <li>Dale al botón "Guardar Proyecto".</li>
+    </ol>
+
+    <h3>B. Carga Masiva por Excel <small>(Solo Administradores)</small></h3>
+    <div class="box warning">
+        <strong>Atención:</strong> Esta opción solo la ve el usuario Administrador y permite subir múltiples proyectos a la vez.
+    </div>
+    <ol>
+        <li>Haz clic en <strong>"Importación Masiva (Excel)"</strong>.</li>
+        <li>Selecciona el archivo Excel de tu computadora.</li>
+        <li>El sistema leerá automáticamente desde la fila 5 en adelante e insertará todos los expedientes en la base de datos al instante.</li>
+    </ol>
+
+    <h2>4. Modificar o Actualizar Proyectos</h2>
+    <p>Si eres el autor de un proyecto o eres Administrador, verás un ícono de un <strong>lápiz</strong> al final de la fila de tu proyecto. Al hacerle clic, se abrirá la ventana para que puedas cambiar su estado (ej. pasarlo de "En Comisión" a "Aprobado") o actualizar su prioridad.</p>
+
+    <h2>5. Búsqueda y Exportación</h2>
+    <ul>
+        <li><strong>Buscador:</strong> Arriba de todo, la barra de búsqueda te permite escribir cualquier palabra, nombre de concejal o número de expediente para filtrarlo al instante.</li>
+        <li><strong>Exportar PDF:</strong> El botón "Exportar PDF" tomará una captura inteligente de la pantalla que estés viendo (sea el panel de control o los reportes) y te descargará un documento listo para imprimir.</li>
+    </ul>
+
+    <div class="box" style="margin-top: 40px; text-align: center;">
+        <em>Sistema desarrollado para el Honorable Concejo Deliberante - Las Heras</em>
+    </div>
+</body>
+</html>
