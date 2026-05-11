@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
+</head>
+<body>
+    <pre id="output">Loading...</pre>
+    <script>
+        fetch('Planificacion.xlsx')
+            .then(res => res.arrayBuffer())
+            .then(ab => {
+                const workbook = XLSX.read(ab, { type: 'array' });
+                const firstSheetName = workbook.SheetNames[0];
+                const worksheet = workbook.Sheets[firstSheetName];
+                const json = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
+                document.getElementById('output').textContent = JSON.stringify(json.slice(0, 20), null, 2);
+            })
+            .catch(err => {
+                document.getElementById('output').textContent = "Error: " + err;
+            });
+    </script>
+</body>
+</html>

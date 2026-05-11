@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HCD - Gestión de Proyectos</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <!-- Quill Rich Text Editor -->
+    <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
+    <script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <!-- Login Screen -->
+    <div id="login-container" class="login-overlay">
+        <div class="login-box">
+            <div class="logo-box" style="justify-content:center; margin-bottom: 1rem;">
+                <i class="ri-government-line" style="font-size: 3rem; color: var(--primary)"></i>
+            </div>
+            <h2 style="text-align:center; margin-bottom: 0.5rem;">HCD Las Heras</h2>
+            <p style="text-align:center; color: var(--text-muted); margin-bottom: 2rem;">Acceso para Concejales</p>
+            
+            <form id="loginForm" onsubmit="event.preventDefault();">
+                <div class="filter-group" style="margin-bottom: 1rem;">
+                    <label>Correo Electrónico</label>
+                    <input type="email" id="loginEmail" placeholder="usuario@hcd.gob.ar" required style="width: 100%; padding: 0.8rem; border: 1px solid var(--border); border-radius: 6px;">
+                </div>
+                <div class="filter-group" style="margin-bottom: 1.5rem;">
+                    <label>Contraseña</label>
+                    <input type="password" id="loginPassword" placeholder="••••••••" required style="width: 100%; padding: 0.8rem; border: 1px solid var(--border); border-radius: 6px;">
+                </div>
+                <button type="submit" class="btn btn-primary" style="width: 100%; justify-content:center; padding: 1rem;">
+                    Ingresar
+                </button>
+                <p id="loginError" style="color: var(--danger); margin-top: 1rem; text-align: center; font-size: 0.9rem; display: none;">Credenciales incorrectas</p>
+            </form>
+        </div>
+    </div>
+
+    <div class="app-container" id="app-container" style="display: none;">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <div class="logo-box">
+                    <i class="ri-government-line"></i>
+                </div>
+                <h2>HCD Las Heras</h2>
+                <p class="subtitle">Concejo Deliberante</p>
+            </div>
+            
+            <nav class="sidebar-nav">
+                <a href="#" class="nav-item active" id="navDashboard">
+                    <i class="ri-dashboard-line"></i>
+                    <span>Panel de Control</span>
+                </a>
+                <a href="#" class="nav-item" id="navProyectos">
+                    <i class="ri-folder-open-line"></i>
+                    <span>Proyectos</span>
+                </a>
+                <a href="#" class="nav-item" id="navComisiones">
+                    <i class="ri-team-line"></i>
+                    <span>Comisiones</span>
+                </a>
+                <a href="#" class="nav-item" id="navReportes">
+                    <i class="ri-bar-chart-box-line"></i>
+                    <span>Reportes</span>
+                </a>
+                <a href="#" class="nav-item" id="navConfiguracion" onclick="alert('Funcionalidad de Configuración en desarrollo');">
+                    <i class="ri-settings-4-line"></i>
+                    <span>Configuración</span>
+                </a>
+            </nav>
+
+            <div class="sidebar-footer">
+                <button class="btn btn-outline" id="theme-toggle">
+                    <i class="ri-moon-line"></i>
+                    <span>Modo Oscuro</span>
+                </button>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <header class="topbar">
+                <div class="search-bar">
+                    <i class="ri-search-line"></i>
+                    <input type="text" id="searchInput" placeholder="Buscar expediente, autor, tema...">
+                </div>
+                <div class="user-profile">
+                    <div class="live-status" style="display: flex; align-items: center; gap: 6px; background: var(--success-bg); color: var(--success-text); padding: 4px 10px; border-radius: 20px; font-size: 0.75rem; font-weight: 600;">
+                        <span class="pulse-dot"></span>
+                        Sistema Online
+                    </div>
+                    <div class="avatar" style="display:flex; align-items:center; gap:10px;">
+                        <span id="currentUserEmail" style="font-size: 0.9rem; font-weight: 500;"></span>
+                        <button class="btn btn-outline" id="btnLogout" style="padding: 0.4rem 0.8rem; font-size: 0.8rem;">Salir</button>
+                    </div>
+                </div>
+
+            </header>
+
+            <div class="dashboard-header">
+                <div class="title-section">
+                    <h1>Planificación de Proyectos</h1>
+                    <p>Monitoreo y control de ordenanzas en curso</p>
+                </div>
+                <div class="action-section" style="display:flex; gap:10px; align-items:center;">
+                    <label for="excelUpload" class="btn btn-outline" style="cursor:pointer;" id="btnImportExcel">
+                        <i class="ri-file-excel-line"></i>
+                        Importación Masiva (Excel)
+                    </label>
+                    <input type="file" id="excelUpload" accept=".xlsx, .xls" style="display:none;" />
+                    <button class="btn btn-outline" onclick="exportToPDF()" id="btnExportPDF">
+                        <i class="ri-file-pdf-line"></i>
+                        Exportar PDF
+                    </button>
+                    <button class="btn btn-primary" onclick="openNewProjectModal()">
+                        <i class="ri-add-line"></i>
+                        Nuevo Proyecto
+                    </button>
+                </div>
+            </div>
+
+            <!-- Stats / Semáforos Globales -->
+            <div class="stats-grid" id="statsSection">
+                <div class="stat-card">
+                    <div class="stat-icon bg-blue">
+                        <i class="ri-file-list-3-line"></i>
+                    </div>
+                    <div class="stat-details">
+                        <h3>Total Activos</h3>
+                        <p class="stat-number" id="totalProjects">0</p>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon bg-green">
+                        <i class="ri-check-double-line"></i>
+                    </div>
+                    <div class="stat-details">
+                        <h3>Aprobados (Mes)</h3>
+                        <p class="stat-number" id="approvedProjects">0</p>
+                    </div>
+                </div>
+                <div class="stat-card warning-card">
+                    <div class="stat-icon bg-red">
+                        <i class="ri-alarm-warning-line"></i>
+                    </div>
+                    <div class="stat-details">
+                        <h3>Demorados (> 30 días)</h3>
+                        <p class="stat-number" id="delayedProjects">0</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Analytics Section -->
+            <div class="analytics-grid" id="analyticsSection">
+                <!-- Ranking de Concejales -->
+                <div class="ranking-card">
+                    <div class="ranking-header">
+                        <h3><i class="ri-medal-line"></i> Ranking de Proyectos por Concejal</h3>
+                    </div>
+                    <div class="ranking-list" id="rankingList">
+                        <!-- Filled by JS -->
+                    </div>
+                </div>
+
+                <!-- Gráfico de Estados -->
+                <div class="chart-card">
+                    <div class="ranking-header">
+                        <h3><i class="ri-pie-chart-line"></i> Distribución de Estados</h3>
+                    </div>
+                    <div class="chart-container-box">
+                        <canvas id="statusChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Filtros -->
+            <div class="filters-section" id="filtersSection">
+                <div class="filter-group">
+                    <label>Estado</label>
+                    <select id="filterStatus">
+                        <option value="all">Todos</option>
+                        <option value="Ingresado">Ingresado</option>
+                        <option value="En Comisión">En Comisión</option>
+                        <option value="En Debate">En Debate</option>
+                        <option value="Para Votación">Para Votación</option>
+                        <option value="Aprobado">Aprobado</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label>Prioridad</label>
+                    <select id="filterPriority">
+                        <option value="all">Todas</option>
+                        <option value="Alta">Alta</option>
+                        <option value="Media">Media</option>
+                        <option value="Baja">Baja</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Table Container -->
+            <div class="table-container" id="tableSection">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Semáforo</th>
+                            <th>Proyecto y Resumen</th>
+                            <th>Referente</th>
+                            <th>Prioridad</th>
+                            <th>Estado</th>
+                            <th>Comisión / Área</th>
+                            <th>Días Transcurridos</th>
+                            <th>Autor/a</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody id="projectsTableBody">
+                        <!-- Filled by JS -->
+                    </tbody>
+                </table>
+            </div>
+        </main>
+    </div>
+
+    <!-- Modal Nuevo Proyecto -->
+    <div id="projectModal" class="modal">
+        <div class="modal-content modal-lg">
+            <div class="modal-header">
+                <h2 id="modalTitle">Cargar Nuevo Proyecto</h2>
+                <span class="close" onclick="closeModal()">&times;</span>
+            </div>
+            <div class="modal-body">
+                <form id="projectForm" onsubmit="event.preventDefault();">
+                    <input type="hidden" id="projectId">
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Expediente / Ref</label>
+                            <input type="text" id="projId" placeholder="Ej: EXP-2024-001">
+                        </div>
+                        <div class="form-group">
+                            <label>Prioridad</label>
+                            <select id="projPrioridad">
+                                <option value="Alta">Alta</option>
+                                <option value="Media" selected>Media</option>
+                                <option value="Baja">Baja</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group full-width">
+                        <label>Título del Proyecto</label>
+                        <input type="text" id="projTitle" placeholder="Nombre descriptivo del proyecto" required>
+                    </div>
+                    
+                    <div class="form-group full-width">
+                        <label>Proyecto Integral (Procesador de Texto)</label>
+                        <div id="editor-container" style="height: 200px; background: white; border-radius: 4px;"></div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Referente</label>
+                            <input type="text" id="projReferente" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Comisión</label>
+                            <input type="text" id="projComision" required>
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Área</label>
+                            <input type="text" id="projArea" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Estado</label>
+                            <select id="projEstado">
+                                <option value="Ingresado">Ingresado</option>
+                                <option value="En Comisión">En Comisión</option>
+                                <option value="En Debate">En Debate</option>
+                                <option value="Para Votación">Para Votación</option>
+                                <option value="Aprobado">Aprobado</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-group full-width">
+                        <label><i class="ri-attachment-line"></i> Adjuntar Archivo Word/PDF (Opcional)</label>
+                        <input type="file" id="projFile" accept=".doc, .docx, .pdf">
+                        <p style="font-size: 0.75rem; color: var(--text-muted); margin-top: 5px;">Este archivo se guardará como respaldo del proyecto integral.</p>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline" onclick="closeModal()">Cancelar</button>
+                <button type="submit" class="btn btn-primary" form="projectForm">Guardar Proyecto</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Firebase Compat SDK -->
+    <script src="https://www.gstatic.com/firebasejs/10.9.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.9.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.9.0/firebase-firestore-compat.js"></script>
+    
+    <script src="app.js"></script>
+</body>
+</html>
