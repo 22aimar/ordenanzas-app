@@ -66,6 +66,7 @@ const tbody = document.getElementById('projectsTableBody');
 const searchInput = document.getElementById('searchInput');
 const filterStatus = document.getElementById('filterStatus');
 const filterPriority = document.getElementById('filterPriority');
+const filterAuthor = document.getElementById('filterAuthor');
 
 const elTotal = document.getElementById('totalProjects');
 const elApproved = document.getElementById('approvedProjects');
@@ -163,6 +164,7 @@ function openNewProjectModal() {
     projectForm.reset();
     if (quill) quill.setContents([]);
     document.getElementById('projectId').value = "";
+    document.getElementById('removeFileFlag').value = 'false';
     
     const dropZonePrompt = document.querySelector("#fileDropZone .drop-zone__prompt");
     if (dropZonePrompt) dropZonePrompt.innerHTML = "Arrastra y suelta el archivo aquí o haz clic para subir";
@@ -202,6 +204,8 @@ function editProject(docId) {
     if (quill) {
         quill.root.innerHTML = p.resumen || "";
     }
+
+    document.getElementById('removeFileFlag').value = 'false';
 
     const dropZonePrompt = document.querySelector("#fileDropZone .drop-zone__prompt");
     if (dropZonePrompt) dropZonePrompt.innerHTML = "Arrastra y suelta el archivo aquí o haz clic para subir";
@@ -248,6 +252,9 @@ projectForm.addEventListener('submit', async (e) => {
             await fileRef.put(file);
             projectData.fileUrl = await fileRef.getDownloadURL();
             projectData.fileName = file.name;
+        } else if (document.getElementById('removeFileFlag').value === 'true') {
+            projectData.fileUrl = null;
+            projectData.fileName = null;
         }
 
         if (docId) {
@@ -321,6 +328,11 @@ async function handleExcelUpload(e) {
     reader.readAsArrayBuffer(file);
 }
 window.handleExcelUpload = handleExcelUpload;
+
+window.markFileForDeletion = function() {
+    document.getElementById('removeFileFlag').value = 'true';
+    document.getElementById('existingFileContainer').style.display = 'none';
+};
 
 document.addEventListener('DOMContentLoaded', () => {
     const excelUpload = document.getElementById('excelUpload');
@@ -513,6 +525,7 @@ function filterProjects() {
     const term = searchInput.value.toLowerCase();
     const status = filterStatus.value;
     const priority = filterPriority.value;
+    const author = filterAuthor ? filterAuthor.value : 'all';
 
     const filtered = currentProjects.filter(p => {
         const matchSearch = p.title.toLowerCase().includes(term) || 
@@ -520,8 +533,13 @@ function filterProjects() {
                             p.id.toLowerCase().includes(term);
         const matchStatus = status === 'all' || p.estado === status;
         const matchPriority = priority === 'all' || p.prioridad === priority;
+        
+        let matchAuthor = true;
+        if (author === 'mine' && currentUser) {
+            matchAuthor = p.ownerEmail === currentUser.email;
+        }
 
-        return matchSearch && matchStatus && matchPriority;
+        return matchSearch && matchStatus && matchPriority && matchAuthor;
     });
 
     renderTable(filtered);
@@ -673,6 +691,7 @@ renderTable = function(projects) {
 if(searchInput) searchInput.addEventListener('input', filterProjects);
 if(filterStatus) filterStatus.addEventListener('change', filterProjects);
 if(filterPriority) filterPriority.addEventListener('change', filterProjects);
+if(filterAuthor) filterAuthor.addEventListener('change', filterProjects);
 
 // --- LÓGICA DE NAVEGACIÓN (SIDEBAR) ---
 const navItems = {

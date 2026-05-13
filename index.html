@@ -203,6 +203,13 @@
                         <option value="Baja">Baja</option>
                     </select>
                 </div>
+                <div class="filter-group">
+                    <label>Autoría</label>
+                    <select id="filterAuthor">
+                        <option value="all">Todos los proyectos</option>
+                        <option value="mine">Solo los míos</option>
+                    </select>
+                </div>
             </div>
 
             <!-- Table Container -->
@@ -247,6 +254,7 @@
             <div class="modal-body">
                 <form id="projectForm" onsubmit="event.preventDefault();">
                     <input type="hidden" id="projectId">
+                    <input type="hidden" id="removeFileFlag" value="false">
                     
                     <div class="form-row">
                         <div class="form-group">
@@ -310,7 +318,10 @@
                         <p style="font-size: 0.75rem; color: var(--text-muted); margin-top: 5px;">Este archivo se guardará como respaldo del proyecto integral.</p>
                         <div id="existingFileContainer" style="display: none; margin-top: 10px; padding: 10px; background: var(--bg-color); border-radius: 6px; border: 1px solid var(--border-color); align-items: center; justify-content: space-between;">
                             <span id="existingFileName" style="font-size: 0.9rem; font-weight: 500; color: var(--secondary);"></span>
-                            <a id="existingFileLink" href="#" target="_blank" class="btn btn-outline" style="padding: 4px 8px; font-size: 0.8rem;">Ver Archivo</a>
+                            <div style="display: flex; gap: 6px;">
+                                <a id="existingFileLink" href="#" target="_blank" class="btn btn-outline" style="padding: 4px 8px; font-size: 0.8rem;">Ver</a>
+                                <button type="button" class="btn btn-outline" style="padding: 4px 8px; font-size: 0.8rem; color: var(--danger); border-color: var(--danger-bg);" onclick="markFileForDeletion()"><i class="ri-delete-bin-line"></i></button>
+                            </div>
                         </div>
                     </div>
                 </form>
