@@ -189,7 +189,7 @@
                         <option value="all">Todos</option>
                         <option value="Ingresado">Ingresado</option>
                         <option value="En Comisión">En Comisión</option>
-                        <option value="En Debate">En Debate</option>
+                        <option value="Despacho">Despacho</option>
                         <option value="Para Votación">Para Votación</option>
                         <option value="Aprobado">Aprobado</option>
                     </select>
@@ -294,7 +294,7 @@
                             <select id="projEstado">
                                 <option value="Ingresado">Ingresado</option>
                                 <option value="En Comisión">En Comisión</option>
-                                <option value="En Debate">En Debate</option>
+                                <option value="Despacho">Despacho</option>
                                 <option value="Para Votación">Para Votación</option>
                                 <option value="Aprobado">Aprobado</option>
                             </select>
@@ -303,7 +303,10 @@
 
                     <div class="form-group full-width">
                         <label><i class="ri-attachment-line"></i> Adjuntar Archivo Word/PDF (Opcional)</label>
-                        <input type="file" id="projFile" accept=".doc, .docx, .pdf">
+                        <div id="fileDropZone" class="drop-zone">
+                            <span class="drop-zone__prompt">Arrastra y suelta el archivo aquí o haz clic para subir</span>
+                            <input type="file" id="projFile" accept=".doc, .docx, .pdf" class="drop-zone__input">
+                        </div>
                         <p style="font-size: 0.75rem; color: var(--text-muted); margin-top: 5px;">Este archivo se guardará como respaldo del proyecto integral.</p>
                     </div>
                 </form>

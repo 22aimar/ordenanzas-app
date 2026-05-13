@@ -599,7 +599,7 @@ body {
 /* Status Badges */
 .status-ingresado { background-color: var(--info-bg); color: var(--info-text); }
 .status-comision { background-color: var(--warning-bg); color: var(--warning-text); }
-.status-debate { background-color: #f3e8ff; color: #6b21a8; }
+.status-despacho { background-color: #f3e8ff; color: #6b21a8; }
 .status-votacion { background-color: #ffedd5; color: #c2410c; }
 .status-aprobado { background-color: var(--success-bg); color: var(--success-text); }
 
@@ -945,4 +945,34 @@ body {
     .modal-body form > div {
         grid-template-columns: 1fr !important; /* Apilar los inputs del modal en móvil */
     }
+}
+
+/* --- DRAP AND DROP ZONE --- */
+.drop-zone {
+    width: 100%;
+    min-height: 100px;
+    padding: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    font-weight: 500;
+    font-size: 0.9rem;
+    cursor: pointer;
+    color: var(--text-muted);
+    border: 2px dashed var(--border-color);
+    border-radius: var(--border-radius-md);
+    background-color: var(--input-bg);
+    transition: all 0.3s;
+}
+
+.drop-zone--over {
+    border-style: solid;
+    border-color: var(--primary);
+    background-color: var(--success-bg);
+    color: var(--primary);
+}
+
+.drop-zone__input {
+    display: none;
 }

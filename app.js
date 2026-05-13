@@ -160,6 +160,10 @@ function openNewProjectModal() {
     projectForm.reset();
     if (quill) quill.setContents([]);
     document.getElementById('projectId').value = "";
+    
+    const dropZonePrompt = document.querySelector("#fileDropZone .drop-zone__prompt");
+    if (dropZonePrompt) dropZonePrompt.innerHTML = "Arrastra y suelta el archivo aquí o haz clic para subir";
+    
     projectModal.style.display = 'flex';
 }
 window.openNewProjectModal = openNewProjectModal;
@@ -193,6 +197,9 @@ function editProject(docId) {
     if (quill) {
         quill.root.innerHTML = p.resumen || "";
     }
+
+    const dropZonePrompt = document.querySelector("#fileDropZone .drop-zone__prompt");
+    if (dropZonePrompt) dropZonePrompt.innerHTML = "Arrastra y suelta el archivo aquí o haz clic para subir";
 
     projectModal.style.display = 'flex';
 }
@@ -290,7 +297,50 @@ document.addEventListener('DOMContentLoaded', () => {
         excelUpload.addEventListener('change', window.handleExcelUpload);
     }
     initTheme();
+
+    // Dropzone setup
+    const dropZoneElement = document.querySelector("#fileDropZone");
+    const inputElement = document.querySelector("#projFile");
+
+    if (dropZoneElement && inputElement) {
+        dropZoneElement.addEventListener("click", (e) => {
+            inputElement.click();
+        });
+
+        inputElement.addEventListener("change", (e) => {
+            if (inputElement.files.length) {
+                updateDropzoneFileList(dropZoneElement, inputElement.files[0]);
+            }
+        });
+
+        dropZoneElement.addEventListener("dragover", (e) => {
+            e.preventDefault();
+            dropZoneElement.classList.add("drop-zone--over");
+        });
+
+        ["dragleave", "dragend"].forEach((type) => {
+            dropZoneElement.addEventListener(type, (e) => {
+                dropZoneElement.classList.remove("drop-zone--over");
+            });
+        });
+
+        dropZoneElement.addEventListener("drop", (e) => {
+            e.preventDefault();
+            if (e.dataTransfer.files.length) {
+                inputElement.files = e.dataTransfer.files;
+                updateDropzoneFileList(dropZoneElement, e.dataTransfer.files[0]);
+            }
+            dropZoneElement.classList.remove("drop-zone--over");
+        });
+    }
 });
+
+function updateDropzoneFileList(dropZoneElement, file) {
+    let promptElement = dropZoneElement.querySelector(".drop-zone__prompt");
+    if (promptElement) {
+        promptElement.innerHTML = `<strong>Archivo seleccionado:</strong> ${file.name}`;
+    }
+}
 
 // --- FUNCIONES DE INTERFAZ Y RENDERIZADO ---
 
@@ -319,7 +369,7 @@ function getStatusBadge(status) {
     const mapping = {
         'Ingresado': 'status-ingresado',
         'En Comisión': 'status-comision',
-        'En Debate': 'status-debate',
+        'Despacho': 'status-despacho',
         'Para Votación': 'status-votacion',
         'Aprobado': 'status-aprobado'
     };
@@ -477,7 +527,7 @@ function updateStatusChart(projects) {
     const counts = {
         'Ingresado': 0,
         'En Comisión': 0,
-        'En Debate': 0,
+        'Despacho': 0,
         'Para Votación': 0,
         'Aprobado': 0
     };
@@ -493,7 +543,7 @@ function updateStatusChart(projects) {
             backgroundColor: [
                 '#3b82f6', // Ingresado (Blue)
                 '#f59e0b', // En Comisión (Orange)
-                '#6b21a8', // En Debate (Purple)
+                '#6b21a8', // Despacho (Purple)
                 '#c2410c', // Para Votación (Deep Orange)
                 '#10b981'  // Aprobado (Green)
             ],
@@ -540,10 +590,26 @@ function updateStatusChart(projects) {
 }
 
 async function exportToPDF() {
-    const element = document.querySelector('.main-content');
+    let option = prompt("Opciones de exportación PDF:\n1. Pantalla completa (Panel, Estadísticas, Filtros)\n2. Solo la Tabla de Proyectos\n3. Solo los Reportes Gráficos\n\nIngresa el número de la opción:", "2");
+    
+    let element = document.body;
+    let filenameStr = `Reporte_HCD_${new Date().toLocaleDateString()}.pdf`;
+
+    if (option === "1") {
+        element = document.querySelector('.main-content');
+    } else if (option === "2") {
+        element = document.querySelector('#tableSection');
+        filenameStr = `Tabla_Proyectos_${new Date().toLocaleDateString()}.pdf`;
+    } else if (option === "3") {
+        element = document.querySelector('.analytics-grid');
+        filenameStr = `Graficos_Reporte_${new Date().toLocaleDateString()}.pdf`;
+    } else {
+        return; // canceló o ingresó algo inválido
+    }
+
     const opt = {
         margin: [10, 10, 10, 10],
-        filename: `Reporte_HCD_${new Date().toLocaleDateString()}.pdf`,
+        filename: filenameStr,
         image: { type: 'jpeg', quality: 0.98 },
         html2canvas: { scale: 2, useCORS: true, logging: false },
         jsPDF: { unit: 'mm', format: 'a4', orientation: 'landscape' }
