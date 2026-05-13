@@ -19,9 +19,13 @@ const storage = firebase.storage();
 
 // Variables Globales
 let currentProjects = [];
+let filteredProjectsCache = [];
 let currentUser = null;
 let statusChartInstance = null;
 let quill = null;
+let currentPage = 1;
+const itemsPerPage = 5;
+window.editingFiles = [];
 
 // Inicializar Quill
 function initQuill() {
@@ -143,8 +147,7 @@ function loadProjectsFromFirestore() {
                 estado: data.estado || "Ingresado",
                 fechaIngreso: data.fechaIngreso && data.fechaIngreso.toDate ? data.fechaIngreso.toDate() : new Date(),
                 ownerEmail: data.ownerEmail || "",
-                fileUrl: data.fileUrl || null,
-                fileName: data.fileName || null
+                files: data.files || (data.fileUrl ? [{ url: data.fileUrl, name: data.fileName }] : [])
             });
         });
         currentProjects = projects;
@@ -165,11 +168,16 @@ function openNewProjectModal() {
     if (quill) quill.setContents([]);
     document.getElementById('projectId').value = "";
     document.getElementById('removeFileFlag').value = 'false';
+    window.editingFiles = [];
     
     const dropZonePrompt = document.querySelector("#fileDropZone .drop-zone__prompt");
-    if (dropZonePrompt) dropZonePrompt.innerHTML = "Arrastra y suelta el archivo aquí o haz clic para subir";
+    if (dropZonePrompt) dropZonePrompt.innerHTML = "Arrastra y suelta los archivos aquí o haz clic para subir";
     
-    document.getElementById('existingFileContainer').style.display = 'none';
+    const existingContainer = document.getElementById('existingFilesContainer');
+    if (existingContainer) {
+        existingContainer.style.display = 'none';
+        existingContainer.innerHTML = '';
+    }
     
     projectModal.style.display = 'flex';
 }
@@ -195,7 +203,8 @@ function editProject(docId) {
     document.getElementById('projectId').value = p.docId;
     document.getElementById('projId').value = p.id;
     document.getElementById('projTitle').value = p.title;
-    document.getElementById('projReferente').value = p.referente;
+    document.getElementById('projAutor').value = p.autor || "";
+    document.getElementById('projReferente').value = p.referente || "";
     document.getElementById('projComision').value = p.comision;
     document.getElementById('projArea').value = p.area;
     document.getElementById('projEstado').value = p.estado;
@@ -206,22 +215,27 @@ function editProject(docId) {
     }
 
     document.getElementById('removeFileFlag').value = 'false';
+    window.editingFiles = p.files ? [...p.files] : [];
 
     const dropZonePrompt = document.querySelector("#fileDropZone .drop-zone__prompt");
-    if (dropZonePrompt) dropZonePrompt.innerHTML = "Arrastra y suelta el archivo aquí o haz clic para subir";
+    if (dropZonePrompt) dropZonePrompt.innerHTML = "Arrastra y suelta los archivos aquí o haz clic para subir";
 
-    const existingContainer = document.getElementById('existingFileContainer');
-    if (p.fileUrl) {
-        existingContainer.style.display = 'flex';
-        document.getElementById('existingFileName').textContent = p.fileName || 'Archivo adjunto';
-        document.getElementById('existingFileLink').href = p.fileUrl;
-    } else {
-        existingContainer.style.display = 'none';
-    }
+    window.renderExistingFiles();
 
     projectModal.style.display = 'flex';
 }
 window.editProject = editProject;
+
+window.deleteProject = async function(docId) {
+    if (confirm("¿Estás seguro de que deseas eliminar este proyecto? Esta acción no se puede deshacer.")) {
+        try {
+            await db.collection("projects").doc(docId).delete();
+        } catch (error) {
+            console.error("Error eliminando proyecto: ", error);
+            alert("Hubo un error al eliminar: " + error.message);
+        }
+    }
+};
 
 // Guardar o Actualizar un Proyecto
 projectForm.addEventListener('submit', async (e) => {
@@ -233,11 +247,14 @@ projectForm.addEventListener('submit', async (e) => {
         title: document.getElementById('projTitle').value,
         resumen: quill ? quill.root.innerHTML : "",
         referente: document.getElementById('projReferente').value,
+        autor: document.getElementById('projAutor').value,
         comision: document.getElementById('projComision').value,
         area: document.getElementById('projArea').value,
         estado: document.getElementById('projEstado').value,
         prioridad: document.getElementById('projPrioridad').value,
     };
+
+    projectData.files = window.editingFiles || [];
 
     const submitBtn = projectForm.querySelector('button[type="submit"]');
     const originalBtnText = submitBtn.innerHTML;
@@ -247,14 +264,13 @@ projectForm.addEventListener('submit', async (e) => {
     try {
         const fileInput = document.getElementById('projFile');
         if (fileInput.files.length > 0) {
-            const file = fileInput.files[0];
-            const fileRef = storage.ref(`proyectos/${Date.now()}_${file.name}`);
-            await fileRef.put(file);
-            projectData.fileUrl = await fileRef.getDownloadURL();
-            projectData.fileName = file.name;
-        } else if (document.getElementById('removeFileFlag').value === 'true') {
-            projectData.fileUrl = null;
-            projectData.fileName = null;
+            for (let i = 0; i < fileInput.files.length; i++) {
+                const file = fileInput.files[i];
+                const fileRef = storage.ref(`proyectos/${Date.now()}_${file.name}`);
+                await fileRef.put(file);
+                const url = await fileRef.getDownloadURL();
+                projectData.files.push({ url: url, name: file.name });
+            }
         }
 
         if (docId) {
@@ -263,17 +279,19 @@ projectForm.addEventListener('submit', async (e) => {
         } else {
             // Crear Nuevo
             projectData.ownerEmail = currentUser.email;
-            projectData.autor = currentUser.email.split('@')[0]; 
+            if (!projectData.autor) projectData.autor = currentUser.email.split('@')[0];
             projectData.fechaIngreso = firebase.firestore.FieldValue.serverTimestamp();
             await db.collection("projects").add(projectData);
         }
         closeModal();
     } catch (error) {
         console.error("Error guardando proyecto: ", error);
-        alert("Hubo un error al guardar. Puede ser un problema de permisos.");
+        alert("Hubo un error al guardar: " + error.message);
     } finally {
         submitBtn.innerHTML = originalBtnText;
         submitBtn.disabled = false;
+        const fileInput = document.getElementById('projFile');
+        if(fileInput) fileInput.value = "";
     }
 });
 
@@ -329,9 +347,38 @@ async function handleExcelUpload(e) {
 }
 window.handleExcelUpload = handleExcelUpload;
 
+window.renderExistingFiles = function() {
+    const existingContainer = document.getElementById('existingFilesContainer');
+    if (!existingContainer) return;
+    existingContainer.innerHTML = '';
+    if (window.editingFiles && window.editingFiles.length > 0) {
+        existingContainer.style.display = 'flex';
+        window.editingFiles.forEach((fileObj, index) => {
+            const fileDiv = document.createElement('div');
+            fileDiv.style.cssText = 'display: flex; padding: 10px; background: var(--bg-color); border-radius: 6px; border: 1px solid var(--border-color); align-items: center; justify-content: space-between;';
+            fileDiv.innerHTML = `
+                <span style="font-size: 0.9rem; font-weight: 500; color: var(--secondary);">${fileObj.name}</span>
+                <div style="display: flex; gap: 6px;">
+                    <a href="${fileObj.url}" target="_blank" class="btn btn-outline" style="padding: 4px 8px; font-size: 0.8rem;">Ver</a>
+                    <button type="button" class="btn btn-outline" style="padding: 4px 8px; font-size: 0.8rem; color: var(--danger); border-color: var(--danger-bg);" onclick="window.markSingleFileForDeletion(${index})"><i class="ri-delete-bin-line"></i></button>
+                </div>
+            `;
+            existingContainer.appendChild(fileDiv);
+        });
+    } else {
+        existingContainer.style.display = 'none';
+    }
+};
+
+window.markSingleFileForDeletion = function(index) {
+    if (window.editingFiles) {
+        window.editingFiles.splice(index, 1);
+        window.renderExistingFiles();
+    }
+};
+
 window.markFileForDeletion = function() {
-    document.getElementById('removeFileFlag').value = 'true';
-    document.getElementById('existingFileContainer').style.display = 'none';
+    // Deprecated, kept for safety
 };
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -380,8 +427,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
 function updateDropzoneFileList(dropZoneElement, file) {
     let promptElement = dropZoneElement.querySelector(".drop-zone__prompt");
-    if (promptElement) {
-        promptElement.innerHTML = `<strong>Archivo seleccionado:</strong> ${file.name}`;
+    const inputElement = dropZoneElement.querySelector(".drop-zone__input");
+    if (promptElement && inputElement && inputElement.files) {
+        if (inputElement.files.length === 1) {
+            promptElement.innerHTML = `<strong>Archivo seleccionado:</strong> ${inputElement.files[0].name}`;
+        } else if (inputElement.files.length > 1) {
+            promptElement.innerHTML = `<strong>${inputElement.files.length} archivos seleccionados</strong>`;
+        } else {
+            promptElement.innerHTML = "Arrastra y suelta los archivos aquí o haz clic para subir";
+        }
     }
 }
 
@@ -428,21 +482,31 @@ function renderTable(projects) {
 
     projects.forEach(p => {
         const days = calculateDays(p.fechaIngreso);
-        const semaClass = getSemaphoreClass(days, p.estado);
-        
         if (p.estado !== 'Aprobado') activeCount++;
         if (p.estado === 'Aprobado') approvedCount++;
         if (p.estado !== 'Aprobado' && days > MAX_DAYS_YELLOW) delayedCount++;
+    });
 
+    if (elTotal) elTotal.textContent = activeCount;
+    if (elApproved) elApproved.textContent = approvedCount;
+    if (elDelayed) elDelayed.textContent = delayedCount;
+    
+    renderRanking(projects);
+
+    const totalPages = Math.ceil(projects.length / itemsPerPage) || 1;
+    if (currentPage > totalPages) currentPage = totalPages;
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    const paginatedProjects = projects.slice(startIndex, startIndex + itemsPerPage);
+
+    paginatedProjects.forEach(p => {
+        const days = calculateDays(p.fechaIngreso);
+        const semaClass = getSemaphoreClass(days, p.estado);
         const tr = document.createElement('tr');
-        
         const canEdit = (currentUser && (currentUser.email === p.ownerEmail || isAdmin(currentUser)));
         const editBtnHtml = canEdit ? `<button class="btn-icon" title="Editar" onclick="window.editProject('${p.docId}')"><i class="ri-edit-line"></i></button>` : '';
+        const deleteBtnHtml = canEdit ? `<button class="btn-icon" title="Eliminar" onclick="window.deleteProject('${p.docId}')" style="color: var(--danger);"><i class="ri-delete-bin-line"></i></button>` : '';
 
         tr.innerHTML = `
-            <td style="text-align:center;">
-                <div class="semaphore ${semaClass}" title="${days} días transcurridos"></div>
-            </td>
             <td>
                 <div class="project-title">${p.title} <span class="project-ref" style="font-size:0.8rem; color:#666;">(${p.id})</span></div>
                 <div class="project-summary">${stripHtml(p.resumen).substring(0, 100)}${p.resumen.length > 100 ? '...' : ''}</div>
@@ -465,17 +529,53 @@ function renderTable(projects) {
             </td>
             <td>${p.autor}</td>
             <td>
-                ${editBtnHtml}
+                <div style="display: flex; gap: 4px;">
+                    ${editBtnHtml}
+                    ${deleteBtnHtml}
+                </div>
             </td>
         `;
         tbody.appendChild(tr);
     });
 
-    if (elTotal) elTotal.textContent = activeCount;
-    if (elApproved) elApproved.textContent = approvedCount;
-    if (elDelayed) elDelayed.textContent = delayedCount;
+    renderPaginationControls(totalPages);
+}
+
+function renderPaginationControls(totalPages) {
+    const container = document.getElementById('paginationControls');
+    if (!container) return;
+    container.innerHTML = '';
     
-    renderRanking(projects);
+    if (totalPages <= 1) return;
+
+    const btnPrev = document.createElement('button');
+    btnPrev.className = 'btn btn-outline';
+    btnPrev.innerHTML = '<i class="ri-arrow-left-s-line"></i> Anterior';
+    btnPrev.disabled = currentPage === 1;
+    btnPrev.onclick = () => {
+        if (currentPage > 1) {
+            currentPage--;
+            renderTable(filteredProjectsCache);
+        }
+    };
+    container.appendChild(btnPrev);
+
+    const pageInfo = document.createElement('span');
+    pageInfo.style.fontWeight = '500';
+    pageInfo.textContent = `Página ${currentPage} de ${totalPages}`;
+    container.appendChild(pageInfo);
+
+    const btnNext = document.createElement('button');
+    btnNext.className = 'btn btn-outline';
+    btnNext.innerHTML = 'Siguiente <i class="ri-arrow-right-s-line"></i>';
+    btnNext.disabled = currentPage === totalPages;
+    btnNext.onclick = () => {
+        if (currentPage < totalPages) {
+            currentPage++;
+            renderTable(filteredProjectsCache);
+        }
+    };
+    container.appendChild(btnNext);
 }
 
 function renderRanking(projects) {
@@ -542,7 +642,9 @@ function filterProjects() {
         return matchSearch && matchStatus && matchPriority && matchAuthor;
     });
 
-    renderTable(filtered);
+    filteredProjectsCache = filtered;
+    currentPage = 1;
+    renderTable(filteredProjectsCache);
 }
 
 // --- MODO OSCURO ---

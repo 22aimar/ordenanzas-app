@@ -217,9 +217,8 @@
                 <table class="data-table">
                     <thead>
                         <tr>
-                            <th>Semáforo</th>
                             <th>Proyecto y Resumen</th>
-                            <th>Referente</th>
+                            <th>Subido por</th>
                             <th>Prioridad</th>
                             <th>Estado</th>
                             <th>Comisión / Área</th>
@@ -232,6 +231,9 @@
                         <!-- Filled by JS -->
                     </tbody>
                 </table>
+                <div id="paginationControls" style="display: flex; justify-content: center; gap: 10px; margin-top: 20px; align-items: center;">
+                    <!-- Filled by JS -->
+                </div>
             </div>
 
             <!-- Footer de Autoría -->
@@ -283,12 +285,23 @@
 
                     <div class="form-row">
                         <div class="form-group">
-                            <label>Referente</label>
-                            <input type="text" id="projReferente" required>
+                            <label>Autor/a Original</label>
+                            <input type="text" id="projAutor" placeholder="Nombre del autor/a" required>
                         </div>
+                        <div class="form-group">
+                            <label>Cargado / Subido por</label>
+                            <input type="text" id="projReferente" placeholder="Tu nombre o referencia" required>
+                        </div>
+                    </div>
+
+                    <div class="form-row">
                         <div class="form-group">
                             <label>Comisión</label>
                             <input type="text" id="projComision" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Área</label>
+                            <input type="text" id="projArea" required>
                         </div>
                     </div>
 
@@ -310,18 +323,14 @@
                     </div>
 
                     <div class="form-group full-width">
-                        <label><i class="ri-attachment-line"></i> Adjuntar Archivo Word/PDF (Opcional)</label>
+                        <label><i class="ri-attachment-line"></i> Adjuntar Archivos Word/PDF (Opcional)</label>
                         <div id="fileDropZone" class="drop-zone">
-                            <span class="drop-zone__prompt">Arrastra y suelta el archivo aquí o haz clic para subir</span>
-                            <input type="file" id="projFile" accept=".doc, .docx, .pdf" class="drop-zone__input">
+                            <span class="drop-zone__prompt">Arrastra y suelta los archivos aquí o haz clic para subir</span>
+                            <input type="file" id="projFile" accept=".doc, .docx, .pdf" class="drop-zone__input" multiple>
                         </div>
-                        <p style="font-size: 0.75rem; color: var(--text-muted); margin-top: 5px;">Este archivo se guardará como respaldo del proyecto integral.</p>
-                        <div id="existingFileContainer" style="display: none; margin-top: 10px; padding: 10px; background: var(--bg-color); border-radius: 6px; border: 1px solid var(--border-color); align-items: center; justify-content: space-between;">
-                            <span id="existingFileName" style="font-size: 0.9rem; font-weight: 500; color: var(--secondary);"></span>
-                            <div style="display: flex; gap: 6px;">
-                                <a id="existingFileLink" href="#" target="_blank" class="btn btn-outline" style="padding: 4px 8px; font-size: 0.8rem;">Ver</a>
-                                <button type="button" class="btn btn-outline" style="padding: 4px 8px; font-size: 0.8rem; color: var(--danger); border-color: var(--danger-bg);" onclick="markFileForDeletion()"><i class="ri-delete-bin-line"></i></button>
-                            </div>
+                        <p style="font-size: 0.75rem; color: var(--text-muted); margin-top: 5px;">Estos archivos se guardarán como respaldo del proyecto integral.</p>
+                        <div id="existingFilesContainer" style="display: none; margin-top: 10px; flex-direction: column; gap: 8px;">
+                            <!-- Archivos existentes -->
                         </div>
                     </div>
                 </form>

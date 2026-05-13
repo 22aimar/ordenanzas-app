@@ -45,14 +45,31 @@ El orden de las columnas debe ser:
 ## 4. Búsqueda y Filtros
 Si tienes muchos proyectos, puedes usar las herramientas que están justo arriba de la tabla:
 - **Barra de búsqueda:** Escribe el título, el expediente o el nombre del autor para encontrar un proyecto rápido.
-- **Filtro de Estado:** Puedes ver solamente los proyectos que están "Aprobados" o "En Debate".
+- **Filtro de Estado:** Puedes ver solamente los proyectos que están "Aprobados" o en "Despacho".
 - **Filtro de Prioridad:** Sirve para ver únicamente los proyectos urgentes (Alta).
 
-## 5. Exportar Reportes (PDF)
+## 5. Gestión de Proyectos (ABM y Archivos Adjuntos)
+Además de cargar datos desde un Excel, ahora puedes gestionar los proyectos directamente en el sistema:
+- **Nuevo Proyecto (Alta):** Permite crear un proyecto desde cero sin necesidad de usar el Excel.
+- **Editar (Modificación):** Haz clic en el botón de edición (ícono de lápiz) en cualquier proyecto de la tabla. Podrás actualizar su estado (por ejemplo, pasarlo a "Despacho"), autor, prioridad, etc.
+- **Archivos Adjuntos:** Dentro del formulario de edición, tienes una nueva zona para "arrastrar y soltar" archivos (como documentos Word o PDFs). Esto permite anexar el expediente real al sistema para luego visualizarlo o descargarlo.
+- **Eliminar (Baja):** Puedes borrar un proyecto definitivamente si hubo un error en la carga.
+
+## 6. Exportar Reportes (PDF)
 Si necesitas presentar un informe impreso o enviarlo por mail:
 1. Haz clic en el botón **"Exportar PDF"** (arriba a la derecha).
-2. El sistema generará automáticamente un documento con el resumen de estadísticas, el ranking, el gráfico y la tabla de proyectos actual.
-3. El archivo se descargará en tu computadora con el nombre `Reporte_HCD_fecha.pdf`.
+2. El sistema te dará a elegir qué formato de reporte prefieres:
+   - **Pantalla Completa:** Guarda un pantallazo general de todo el tablero.
+   - **Solo Tabla:** Ideal si solo quieres imprimir el listado de expedientes.
+   - **Solo Analíticas:** Perfecto para mostrar únicamente los gráficos y resúmenes a los directivos.
+3. El archivo se generará automáticamente y se descargará en tu computadora.
 
-## 5. ¿Se pueden hacer modificaciones en el futuro?
-¡Sí! El sistema fue creado de manera modular usando `HTML`, `CSS` y `JavaScript`. Si más adelante tu equipo, el Intendente o los concejales sugieren agregar nuevas métricas (como gráficos de barras circulares), exportar datos a PDF o cambiar los colores, puedes contactar al desarrollador para que implemente esos cambios de manera muy sencilla. El diseño permite crecer e incorporar más funcionalidades sin tener que empezar desde cero.
+## 7. Entendiendo las Versiones (Ej. Versión 1.1)
+Los programas informáticos utilizan números de versión para llevar un registro de los avances.
+- **Versión 1.0:** Fue nuestra versión base, la cual leía el Excel y mostraba gráficos.
+- **Versión 1.1:** Al agregar características nuevas e importantes, que mejoran el uso diario pero no cambian la esencia del sistema (como poder Editar/Eliminar, subir archivos adjuntos y los nuevos formatos PDF), el número secundario sube (de 0 a 1).
+- **Versión 2.0:** Este número mayor se utilizaría solamente si hiciéramos un rediseño total o un cambio completo de tecnología en un futuro.
+- **Versión 1.1.1:** Un tercer número se usaría para pequeñas correcciones (por ejemplo, si arreglamos un color o un texto mal escrito).
+
+## 8. ¿Se pueden hacer modificaciones en el futuro?
+¡Sí! El sistema fue creado de manera modular. Si más adelante tu equipo o el Concejo sugieren agregar nuevas métricas, más filtros o cambiar colores, el diseño está preparado para incorporar nuevas funcionalidades de manera rápida y sin tener que empezar desde cero.
