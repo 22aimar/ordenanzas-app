@@ -15,6 +15,7 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
 const db = firebase.firestore();
+const storage = firebase.storage();
 
 // Variables Globales
 let currentProjects = [];
@@ -140,7 +141,9 @@ function loadProjectsFromFirestore() {
                 autor: data.autor || "",
                 estado: data.estado || "Ingresado",
                 fechaIngreso: data.fechaIngreso && data.fechaIngreso.toDate ? data.fechaIngreso.toDate() : new Date(),
-                ownerEmail: data.ownerEmail || ""
+                ownerEmail: data.ownerEmail || "",
+                fileUrl: data.fileUrl || null,
+                fileName: data.fileName || null
             });
         });
         currentProjects = projects;
@@ -163,6 +166,8 @@ function openNewProjectModal() {
     
     const dropZonePrompt = document.querySelector("#fileDropZone .drop-zone__prompt");
     if (dropZonePrompt) dropZonePrompt.innerHTML = "Arrastra y suelta el archivo aquí o haz clic para subir";
+    
+    document.getElementById('existingFileContainer').style.display = 'none';
     
     projectModal.style.display = 'flex';
 }
@@ -201,6 +206,15 @@ function editProject(docId) {
     const dropZonePrompt = document.querySelector("#fileDropZone .drop-zone__prompt");
     if (dropZonePrompt) dropZonePrompt.innerHTML = "Arrastra y suelta el archivo aquí o haz clic para subir";
 
+    const existingContainer = document.getElementById('existingFileContainer');
+    if (p.fileUrl) {
+        existingContainer.style.display = 'flex';
+        document.getElementById('existingFileName').textContent = p.fileName || 'Archivo adjunto';
+        document.getElementById('existingFileLink').href = p.fileUrl;
+    } else {
+        existingContainer.style.display = 'none';
+    }
+
     projectModal.style.display = 'flex';
 }
 window.editProject = editProject;
@@ -221,7 +235,21 @@ projectForm.addEventListener('submit', async (e) => {
         prioridad: document.getElementById('projPrioridad').value,
     };
 
+    const submitBtn = projectForm.querySelector('button[type="submit"]');
+    const originalBtnText = submitBtn.innerHTML;
+    submitBtn.innerHTML = '<i class="ri-loader-4-line ri-spin"></i> Guardando...';
+    submitBtn.disabled = true;
+
     try {
+        const fileInput = document.getElementById('projFile');
+        if (fileInput.files.length > 0) {
+            const file = fileInput.files[0];
+            const fileRef = storage.ref(`proyectos/${Date.now()}_${file.name}`);
+            await fileRef.put(file);
+            projectData.fileUrl = await fileRef.getDownloadURL();
+            projectData.fileName = file.name;
+        }
+
         if (docId) {
             // Actualizar existente
             await db.collection("projects").doc(docId).update(projectData);
@@ -236,6 +264,9 @@ projectForm.addEventListener('submit', async (e) => {
     } catch (error) {
         console.error("Error guardando proyecto: ", error);
         alert("Hubo un error al guardar. Puede ser un problema de permisos.");
+    } finally {
+        submitBtn.innerHTML = originalBtnText;
+        submitBtn.disabled = false;
     }
 });
 
