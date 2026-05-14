@@ -270,14 +270,24 @@ window.saveProject = async function() {
     }
 
     try {
+        // Intentar subir archivos, pero si falla Storage no bloquear el guardado
         const fileInput = document.getElementById('projFile');
         if (fileInput && fileInput.files.length > 0) {
+            let fileUploadFailed = false;
             for (let i = 0; i < fileInput.files.length; i++) {
-                const file = fileInput.files[i];
-                const fileRef = storage.ref(`proyectos/${Date.now()}_${file.name}`);
-                await fileRef.put(file);
-                const url = await fileRef.getDownloadURL();
-                projectData.files.push({ url: url, name: file.name });
+                try {
+                    const file = fileInput.files[i];
+                    const fileRef = storage.ref(`proyectos/${Date.now()}_${file.name}`);
+                    await fileRef.put(file);
+                    const url = await fileRef.getDownloadURL();
+                    projectData.files.push({ url: url, name: file.name });
+                } catch (fileError) {
+                    console.error("Error subiendo archivo:", fileError);
+                    fileUploadFailed = true;
+                }
+            }
+            if (fileUploadFailed) {
+                alert("Aviso: No se pudieron subir uno o más archivos (posible problema de permisos en Storage), pero el proyecto se guardará igualmente.");
             }
         }
 
