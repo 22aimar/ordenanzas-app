@@ -513,7 +513,7 @@ function renderTable(projects) {
             </td>
             <td>
                 <div class="project-referent">
-                    <i class="ri-user-star-line"></i> ${p.referente}
+                    <i class="ri-user-star-line"></i> ${p.autor}
                 </div>
             </td>
             <td>${getPriorityBadge(p.prioridad)}</td>
@@ -527,7 +527,7 @@ function renderTable(projects) {
                     ${days} días
                 </span>
             </td>
-            <td>${p.autor}</td>
+            <td>${p.referente}</td>
             <td>
                 <div style="display: flex; gap: 4px;">
                     ${editBtnHtml}
