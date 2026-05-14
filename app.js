@@ -238,32 +238,40 @@ window.deleteProject = async function(docId) {
 };
 
 // Guardar o Actualizar un Proyecto
-projectForm.addEventListener('submit', async (e) => {
-    e.preventDefault();
-    
+window.saveProject = async function() {
     const docId = document.getElementById('projectId').value;
+    const titleVal = document.getElementById('projTitle').value;
+
+    if (!titleVal || titleVal.trim() === '') {
+        alert('Por favor, ingresá al menos el Título del Proyecto.');
+        return;
+    }
+
     const projectData = {
-        id: document.getElementById('projId').value,
-        title: document.getElementById('projTitle').value,
+        id: document.getElementById('projId').value || '',
+        title: titleVal,
         resumen: quill ? quill.root.innerHTML : "",
-        referente: document.getElementById('projReferente').value,
-        autor: document.getElementById('projAutor').value,
-        comision: document.getElementById('projComision').value,
-        area: document.getElementById('projArea').value,
-        estado: document.getElementById('projEstado').value,
-        prioridad: document.getElementById('projPrioridad').value,
+        referente: document.getElementById('projReferente').value || '',
+        autor: document.getElementById('projAutor').value || '',
+        comision: document.getElementById('projComision').value || '',
+        area: document.getElementById('projArea').value || '',
+        estado: document.getElementById('projEstado').value || 'Ingresado',
+        prioridad: document.getElementById('projPrioridad').value || 'Media',
     };
 
     projectData.files = window.editingFiles || [];
 
-    const submitBtn = projectForm.querySelector('button[type="submit"]');
-    const originalBtnText = submitBtn.innerHTML;
-    submitBtn.innerHTML = '<i class="ri-loader-4-line ri-spin"></i> Guardando...';
-    submitBtn.disabled = true;
+    const submitBtn = document.getElementById('btnSaveProject');
+    let originalBtnText = "Guardar Proyecto";
+    if (submitBtn) {
+        originalBtnText = submitBtn.innerHTML;
+        submitBtn.innerHTML = '<i class="ri-loader-4-line ri-spin"></i> Guardando...';
+        submitBtn.disabled = true;
+    }
 
     try {
         const fileInput = document.getElementById('projFile');
-        if (fileInput.files.length > 0) {
+        if (fileInput && fileInput.files.length > 0) {
             for (let i = 0; i < fileInput.files.length; i++) {
                 const file = fileInput.files[i];
                 const fileRef = storage.ref(`proyectos/${Date.now()}_${file.name}`);
@@ -288,12 +296,14 @@ projectForm.addEventListener('submit', async (e) => {
         console.error("Error guardando proyecto: ", error);
         alert("Hubo un error al guardar: " + error.message);
     } finally {
-        submitBtn.innerHTML = originalBtnText;
-        submitBtn.disabled = false;
+        if (submitBtn) {
+            submitBtn.innerHTML = originalBtnText;
+            submitBtn.disabled = false;
+        }
         const fileInput = document.getElementById('projFile');
         if(fileInput) fileInput.value = "";
     }
-});
+};
 
 // Importador Excel exclusivo para Admin
 async function handleExcelUpload(e) {

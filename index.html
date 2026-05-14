@@ -254,7 +254,7 @@
                 <span class="close" onclick="closeModal()">&times;</span>
             </div>
             <div class="modal-body">
-                <form id="projectForm" onsubmit="event.preventDefault();">
+                <form id="projectForm">
                     <input type="hidden" id="projectId">
                     <input type="hidden" id="removeFileFlag" value="false">
                     
@@ -275,7 +275,7 @@
                     
                     <div class="form-group full-width">
                         <label>Título del Proyecto</label>
-                        <input type="text" id="projTitle" placeholder="Nombre descriptivo del proyecto" required>
+                        <input type="text" id="projTitle" placeholder="Nombre descriptivo del proyecto">
                     </div>
                     
                     <div class="form-group full-width">
@@ -286,22 +286,22 @@
                     <div class="form-row">
                         <div class="form-group">
                             <label>Autor/a Original</label>
-                            <input type="text" id="projReferente" placeholder="Nombre del autor/a" required>
+                            <input type="text" id="projReferente" placeholder="Nombre del autor/a">
                         </div>
                         <div class="form-group">
                             <label>Cargado / Subido por</label>
-                            <input type="text" id="projAutor" placeholder="Tu nombre o referencia" required>
+                            <input type="text" id="projAutor" placeholder="Tu nombre o referencia">
                         </div>
                     </div>
 
                     <div class="form-row">
                         <div class="form-group">
                             <label>Comisión</label>
-                            <input type="text" id="projComision" required>
+                            <input type="text" id="projComision">
                         </div>
                         <div class="form-group">
                             <label>Área</label>
-                            <input type="text" id="projArea" required>
+                            <input type="text" id="projArea">
                         </div>
                     </div>
 
@@ -333,7 +333,7 @@
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-outline" onclick="closeModal()">Cancelar</button>
-                <button type="submit" class="btn btn-primary" form="projectForm">Guardar Proyecto</button>
+                <button type="button" class="btn btn-primary" id="btnSaveProject" onclick="window.saveProject()">Guardar Proyecto</button>
             </div>
         </div>
     </div>
